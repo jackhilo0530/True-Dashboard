@@ -1,0 +1,20 @@
+enum Status {
+  draft
+  active
+  blocked
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  imgUrl      String
+  description String?
+  price       Decimal    @db.Decimal(10, 2)
+  sku         String     @unique
+  stock       Int        @default(0)
+  status      Status     @default(draft)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+}
