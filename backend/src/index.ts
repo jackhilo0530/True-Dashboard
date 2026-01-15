@@ -4,6 +4,7 @@ import {cors} from "hono/cors";
 import auth from "./routes/auth";
 import dotenv from "dotenv";
 import { globalMiddleware } from "./middlewares/auth.middleware";
+import product from "./routes/product";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(
 app.use("/*", globalMiddleware);
 
 app.route("/api/auth", auth);
+app.route("/api/product", product);
 
 const port = 3000;
 console.log(`Backend running at http://localhost:${port}`);
