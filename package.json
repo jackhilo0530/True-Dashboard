@@ -1,0 +1,21 @@
+{
+  "name": "true-dashboard",
+  "version": "1.0.0",
+  "description": "Sign up, Log in and Product",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackhilo0530/True-Dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jackhilo0530/True-Dashboard/issues"
+  },
+  "homepage": "https://github.com/jackhilo0530/True-Dashboard#readme"
+}
