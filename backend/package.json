@@ -20,10 +20,12 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
+    "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
     "hono": "^4.11.4",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.3.5"
   }
 }
