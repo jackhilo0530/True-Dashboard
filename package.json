@@ -4,7 +4,12 @@
   "description": "Sign up, Log in and Product",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && tsc",
+    "lint": "cd backend && eslint . --ext .ts && cd ../frontend && eslint . --ext .ts,.tsx"
   },
   "repository": {
     "type": "git",
@@ -17,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/jackhilo0530/True-Dashboard/issues"
   },
-  "homepage": "https://github.com/jackhilo0530/True-Dashboard#readme"
+  "homepage": "https://github.com/jackhilo0530/True-Dashboard#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }
