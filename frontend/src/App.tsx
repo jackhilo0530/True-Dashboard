@@ -1,35 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, {useState, useEffect} from "react";
+import Dashboard from "./components/User/Dashboard";
+import Signup from "./components/User/Signup";
+import Login from "./components/User/Login";
 
-function App() {
-  const [count, setCount] = useState(0)
+export type Page = "dashboard" | "signup" | "login";
+
+const App: React.FC = () => {
+  const [page, setPage] = useState<Page>("dashboard");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if(token) setIsLoggedIn(true);
+  }, []);
+
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      console.error("runtime error:", event.error);
+      alert("unexpected error.check console for details.");
+    };
+    window.addEventListener("error", handler);
+    return () => window.removeEventListener("error", handler);
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setPage("dashboard");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setPage("dashboard");
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div style={{fontFamily: "sans-serif", maxWidth: 400, margin: "40px auto"}}>
+      {page === "dashboard" && (
+        <Dashboard 
+          isLoggedIn = {isLoggedIn}
+          goSignup={() => setPage("signup")}
 
-export default App
+          goLogin={() => setPage("login")}
+          logout={handleLogout}
+        />
+      )}
+
+      {page === "signup" && (
+        <Signup 
+          goDashboard={() => setPage("dashboard")}
+          goLogin={() => setPage("login")}
+        />
+      )}
+
+      {page === "login" && (
+        <Login 
+          goDashboard={() => setPage("dashboard")}
+          goSignup={() => setPage("signup")}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+    </div>
+  );
+};
+
+export default App;
