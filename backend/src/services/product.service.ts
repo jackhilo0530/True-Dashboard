@@ -33,7 +33,7 @@ const uploadImageToStorage = async (imageBuffer: Buffer, imageName: string) => {
         if (err2) throw err2;
     });
 
-    return `/${imageName}`;
+    return `/uploads/${imageName}`;
 
 };
 
