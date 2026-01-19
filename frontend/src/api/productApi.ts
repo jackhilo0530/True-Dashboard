@@ -25,11 +25,14 @@ export const productApi = {
   },
 
   async delete(id: number): Promise<void> {
-    await fetch(`${API_BASE}/api/product/${id}`, {
+    const res = await fetch(`${API_BASE}/api/product/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
     });
-    return;
+    if(!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "failed to delete");
+    }
   }
 
 };

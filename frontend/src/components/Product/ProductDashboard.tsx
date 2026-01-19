@@ -1,31 +1,41 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 import React from "react";
 import type { Product } from "../../types/product";
-import {productApi} from "../../api/productApi"
+import { productApi } from "../../api/productApi";
 
 type Props = {
-    products: Product[];
-    loading: boolean;
+    loading?: boolean;
     onCreateClick: () => void;
     onUpdateClick: (product: Product) => void;
 };
 
-const load = async () => {
-    await productApi.list();
-}
+const ProductDashboard: React.FC<Props> = ({ loading: loadingProp, onCreateClick, onUpdateClick }) => {
+    const [items, setItems] = React.useState<Product[]>([]);
+    const [loading, setLoading] = React.useState<boolean>(!!loadingProp);
 
-const onDelete = async(id: number) => {
-    if(!confirm("delete this product?")) return;
-    await productApi.delete(id);
-    await load();
-}
+    const load = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const list = await productApi.list();
+            setItems(list);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-const ProductDashboard: React.FC<Props> = ({
-    products,
-    loading,
-    onCreateClick,
-    onUpdateClick,
-}) => {
+    React.useEffect(() => {
+        load();
+    }, [load]);
+
+    const onDelete = async (id: number) => {
+        if (!confirm("delete this product?")) return;
+        await productApi.delete(id);
+        // option a: reload from server
+        await load();
+        // option b: local update (faster)
+        // setItems((prev) => prev.filter((p) => p.id !== id));
+    };
+
     return (
         <div style={{ padding: 16 }}>
             <h2>product dashboard</h2>
@@ -35,8 +45,8 @@ const ProductDashboard: React.FC<Props> = ({
             </div>
 
             {loading && <p>loading...</p>}
-            {/* {(() => { console.log('This is a log inside return'); return null; })()} */}
-            {!loading && products.length > 0 && (
+
+            {!loading && items.length > 0 && (
                 <table style={{ borderCollapse: "collapse", width: "100%" }}>
                     <thead>
                         <tr>
@@ -51,15 +61,16 @@ const ProductDashboard: React.FC<Props> = ({
                             <th style={th}>action</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        {products.map((p) => (
+                        {items.map((p) => (
                             <tr key={p.id}>
                                 <td style={td}>{p.id}</td>
                                 <td style={td}>{p.name}</td>
                                 <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
                                     {p.imgUrl ? (
                                         <img
-                                            src={`${API_BASE}/${p.imgUrl}`}
+                                            src={`${API_BASE}${p.imgUrl}`}
                                             alt={p.name}
                                             style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6 }}
                                         />
@@ -81,6 +92,8 @@ const ProductDashboard: React.FC<Props> = ({
                     </tbody>
                 </table>
             )}
+
+            {!loading && items.length === 0 && <p>no products</p>}
         </div>
     );
 };

@@ -65,7 +65,6 @@ const ProductPage: React.FC<Props> = ({ goDashboard }) => {
       </button>
 
       <ProductDashboard
-        products={products}
         loading={loading}
         onCreateClick={() => setView("create")}
         onUpdateClick={(p) => {
