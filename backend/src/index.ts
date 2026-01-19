@@ -26,7 +26,7 @@ app.route("/api/auth", auth);
 app.route("/api/product", product);
 
 const uploadDir = path.join(process.cwd(), "public");
-app.get("/uploads/", serveStatic({root: uploadDir}));
+app.get("/uploads/*", serveStatic({root: uploadDir}));
 
 const port = 3000;
 console.log(`Backend running at http://localhost:${port}`);
