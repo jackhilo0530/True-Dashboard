@@ -13,6 +13,13 @@ const ProductCreate: React.FC<Props> = ({ onCreated, onCancel }) => {
   // optional: image preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Authorization": token ? `Bearer ${token}` : "",
+    };
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -33,9 +40,10 @@ const ProductCreate: React.FC<Props> = ({ onCreated, onCancel }) => {
       const res = await fetch(`${API_BASE}/api/product`, {
         method: "POST",
         body: fd,
+        headers: getAuthHeaders(),
         // do NOT set content-type for formdata
-      })
-      
+      });
+
       // read response safely (json or text)
       const contentType = res.headers.get("content-type") || "";
       const payload = contentType.includes("application/json")

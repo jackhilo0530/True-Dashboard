@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 import React from "react";
-import type { Product} from "../../types/product";
+import type { Product } from "../../types/product";
 
 type Props = {
     product: Product;
@@ -14,6 +14,13 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
 
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
     const [pickedFile, setPickedFile] = React.useState<File | null>(null);
+
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem("token");
+        return {
+            "Authorization": token ? `Bearer ${token}` : "",
+        };
+    };
 
     // if product changes (switching rows), clear preview
     React.useEffect(() => {
@@ -53,12 +60,13 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
 
             // if user did not pick a new image, do not send img field
             if (!pickedFile || pickedFile.size === 0) {
-                fd.delete("img");
+                fd.delete("imgFile");
             }
 
             const res = await fetch(`${API_BASE}/api/product/${product.id}`, {
                 method: "PUT", // or "PATCH" if your backend uses patch
                 body: fd,
+                headers: getAuthHeaders(),
                 // do not set content-type manually for formdata
             });
 
@@ -167,7 +175,7 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
                                 <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>current</div>
                                 {product.imgUrl ? (
                                     <img
-                                        src={product.imgUrl}
+                                        src={`${API_BASE}${product.imgUrl}`}
                                         alt="current"
                                         style={{
                                             width: 120,
