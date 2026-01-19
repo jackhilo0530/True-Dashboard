@@ -18,7 +18,7 @@ app.use(
     })
 );
 
-app.use("/*", globalMiddleware);
+// app.use("/*", globalMiddleware);
 
 app.route("/api/auth", auth);
 app.route("/api/product", product);
