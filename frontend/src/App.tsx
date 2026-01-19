@@ -2,8 +2,9 @@ import React, {useState, useEffect} from "react";
 import Dashboard from "./components/User/Dashboard";
 import Signup from "./components/User/Signup";
 import Login from "./components/User/Login";
+import ProductPage from "../src/components/Product/ProductPage";
 
-export type Page = "dashboard" | "signup" | "login";
+export type Page = "dashboard" | "signup" | "login" | "product";
 
 const App: React.FC = () => {
   const [page, setPage] = useState<Page>("dashboard");
@@ -40,8 +41,8 @@ const App: React.FC = () => {
         <Dashboard 
           isLoggedIn = {isLoggedIn}
           goSignup={() => setPage("signup")}
-
           goLogin={() => setPage("login")}
+          goProduct={() => setPage("product")}
           logout={handleLogout}
         />
       )}
@@ -59,6 +60,10 @@ const App: React.FC = () => {
           goSignup={() => setPage("signup")}
           onLoginSuccess={handleLoginSuccess}
         />
+      )}
+
+      {page === "product" && isLoggedIn && (
+        <ProductPage goDashboard={() => setPage("dashboard")} />
       )}
     </div>
   );
