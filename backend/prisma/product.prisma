@@ -5,16 +5,16 @@ enum Status {
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   imgUrl      String
   description String?
-  price       Decimal    @db.Decimal(10, 2)
-  sku         String     @unique
-  stock       Int        @default(0)
-  status      Status     @default(draft)
+  price       Decimal @db.Decimal(10, 2)
+  sku         String  @unique
+  stock       Int     @default(0)
+  status      Status  @default(draft)
+  pdfUrl      String
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
