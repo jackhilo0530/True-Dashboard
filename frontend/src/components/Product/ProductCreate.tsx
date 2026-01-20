@@ -30,8 +30,15 @@ const ProductCreate: React.FC<Props> = ({ onCreated, onCancel }) => {
 
     // validate file field
     const img = fd.get("imgFile");
+    const pdf = fd.get("pdfFile");
     if (!img || !(img instanceof File) || img.size === 0) {
       setError("image file is required");
+      setLoading(false);
+      return;
+    }
+
+    if (!pdf || !(pdf instanceof File) || pdf.size === 0) {
+      setError("pdf file is required");
       setLoading(false);
       return;
     }
@@ -162,6 +169,18 @@ const ProductCreate: React.FC<Props> = ({ onCreated, onCancel }) => {
               />
             </div>
           )}
+
+          <div style={{ marginBottom: 12 }}>
+            <label>
+              pdf
+              <input
+                name="pdfFile"
+                type="file"
+                accept="application/pdf"
+                required
+              />
+            </label>
+          </div>
 
           <div style={{ display: "flex", gap: 8 }}>
             <button type="submit">

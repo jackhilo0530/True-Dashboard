@@ -53,6 +53,7 @@ const ProductDashboard: React.FC<Props> = ({ loading: loadingProp, onCreateClick
                             <th style={th}>id</th>
                             <th style={th}>name</th>
                             <th style={th}>image</th>
+                            <th style={th}>doc</th>
                             <th style={th}>description</th>
                             <th style={th}>price</th>
                             <th style={th}>sku</th>
@@ -74,6 +75,13 @@ const ProductDashboard: React.FC<Props> = ({ loading: loadingProp, onCreateClick
                                             alt={p.name}
                                             style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6 }}
                                         />
+                                    ) : (
+                                        <span>-</span>
+                                    )}
+                                </td>
+                                <td style={{ margin: 2, padding: 3, borderBottom: "1px solid #eee" }}>
+                                    {p.pdfUrl ? (
+                                        <a href={`${API_BASE}${p.pdfUrl}`} target="_blank" rel="noreferrer">Link</a>
                                     ) : (
                                         <span>-</span>
                                     )}

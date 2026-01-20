@@ -12,42 +12,50 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
     const [error, setError] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
 
-    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
-    const [pickedFile, setPickedFile] = React.useState<File | null>(null);
+    // image
+    const [imgPreviewUrl, setImgPreviewUrl] = React.useState<string | null>(null);
+    const [pickedImgFile, setPickedImgFile] = React.useState<File | null>(null);
 
-    const getAuthHeaders = () => {
+    // pdf
+    const [pickedPdfFile, setPickedPdfFile] = React.useState<File | null>(null);
+
+    const getAuthHeaders = (): Record<string, string> => {
         const token = localStorage.getItem("token");
-        return {
-            "Authorization": token ? `Bearer ${token}` : "",
-        };
+        if (!token) return {};
+        return { Authorization: `Bearer ${token}` };
     };
-
-    // if product changes (switching rows), clear preview
+    // if product changes (switching rows), clear previews
     React.useEffect(() => {
-        setPreviewUrl(null);
-        setPickedFile(null);
+        setImgPreviewUrl(null);
+        setPickedImgFile(null);
+        setPickedPdfFile(null);
         setError(null);
     }, [product?.id]);
 
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onImgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0] ?? null;
-        setPickedFile(f);
+        setPickedImgFile(f);
 
         if (!f) {
-            setPreviewUrl(null);
+            setImgPreviewUrl(null);
             return;
         }
 
         const url = URL.createObjectURL(f);
-        setPreviewUrl(url);
+        setImgPreviewUrl(url);
+    };
+
+    const onPdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0] ?? null;
+        setPickedPdfFile(f);
     };
 
     // cleanup object url
     React.useEffect(() => {
         return () => {
-            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            if (imgPreviewUrl) URL.revokeObjectURL(imgPreviewUrl);
         };
-    }, [previewUrl]);
+    }, [imgPreviewUrl]);
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -58,16 +66,18 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
             const form = e.currentTarget;
             const fd = new FormData(form);
 
-            // if user did not pick a new image, do not send img field
-            if (!pickedFile || pickedFile.size === 0) {
+            // important: if user did not pick new image/pdf, do not send those fields
+            if (!pickedImgFile || pickedImgFile.size === 0) {
                 fd.delete("imgFile");
+            }
+            if (!pickedPdfFile || pickedPdfFile.size === 0) {
+                fd.delete("pdfFile");
             }
 
             const res = await fetch(`${API_BASE}/api/product/${product.id}`, {
-                method: "PUT", // or "PATCH" if your backend uses patch
+                method: "PUT", // or patch if your backend uses patch
                 body: fd,
                 headers: getAuthHeaders(),
-                // do not set content-type manually for formdata
             });
 
             const contentType = res.headers.get("content-type") || "";
@@ -85,8 +95,9 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
             }
 
             form.reset();
-            setPreviewUrl(null);
-            setPickedFile(null);
+            setImgPreviewUrl(null);
+            setPickedImgFile(null);
+            setPickedPdfFile(null);
             onUpdated?.();
         } catch (err: any) {
             setError(err?.message ?? "unexpected error");
@@ -94,6 +105,8 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
             setLoading(false);
         }
     };
+
+    const currentPdfUrl = product.pdfUrl ? `${API_BASE}${product.pdfUrl}` : null;
 
     return (
         <div style={{ maxWidth: 520 }}>
@@ -167,6 +180,7 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
                         </label>
                     </div>
 
+                    {/* image */}
                     <div style={{ marginTop: 10, marginBottom: 12 }}>
                         <div style={{ marginBottom: 8 }}>image</div>
 
@@ -204,9 +218,9 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
 
                             <div>
                                 <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>new preview</div>
-                                {previewUrl ? (
+                                {imgPreviewUrl ? (
                                     <img
-                                        src={previewUrl}
+                                        src={imgPreviewUrl}
                                         alt="new preview"
                                         style={{
                                             width: 120,
@@ -234,10 +248,44 @@ const ProductUpdate: React.FC<Props> = ({ product, onUpdated, onCancel }) => {
                             </div>
                         </div>
 
-                        <input name="img" type="file" accept="image/*" onChange={onFileChange} />
+                        {/* important: name must match what backend expects and what we fd.delete(...) */}
+                        <input name="imgFile" type="file" accept="image/*" onChange={onImgChange} />
                         <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
                             leave empty to keep current image
                         </div>
+                    </div>
+
+                    {/* pdf */}
+                    <div style={{ marginTop: 10, marginBottom: 12 }}>
+                        <div style={{ marginBottom: 8 }}>pdf</div>
+
+                        <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>current</div>
+                        {currentPdfUrl ? (
+                            <a href={currentPdfUrl} target="_blank" rel="noreferrer">
+                                view current pdf
+                            </a>
+                        ) : (
+                            <div style={{ opacity: 0.7 }}>no pdf</div>
+                        )}
+
+                        <div style={{ marginTop: 8 }}>
+                            <input
+                                name="pdfFile"
+                                type="file"
+                                accept="application/pdf,.pdf"
+                                onChange={onPdfChange}
+                            />
+                        </div>
+
+                        {pickedPdfFile ? (
+                            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+                                new pdf: {pickedPdfFile.name}
+                            </div>
+                        ) : (
+                            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+                                leave empty to keep current pdf
+                            </div>
+                        )}
                     </div>
 
                     <div style={{ display: "flex", gap: 8 }}>
