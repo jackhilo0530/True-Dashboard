@@ -4,7 +4,7 @@ import fs from "fs";
 import { writeFile, mkdir } from "node:fs/promises";
 import crypto from "crypto";
 import path from "path";
-import z from "zod";
+import z, { array } from "zod";
 
 const statusEnum = z.enum(["draft", "active", "blocked"]);
 
@@ -16,6 +16,8 @@ const baseProductSchema = {
     stock: z.coerce.number().int().nonnegative("stock must be 0 or more"),
     status: statusEnum,
     imgFile: z.instanceof(File).optional(),
+    pdfFile: z.instanceof(File).optional(),
+    
 };
 
 const createProductSchema = z.object(baseProductSchema);
@@ -37,6 +39,19 @@ const uploadImageToStorage = async (imageBuffer: Buffer, imageName: string) => {
 
 };
 
+const uploadPdfToStorage = async (pdfBuffer: Buffer, pdfName: string) => {
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadDir, {recursive: true}, (err) => {
+        if(err) throw err;
+    });
+
+    const fullPath = path.join(uploadDir, pdfName);
+    await fs.writeFile(fullPath, pdfBuffer, (err2) => {
+        if(err2) throw err2;
+    });
+    return `/uploads/${pdfName}`;
+}
+
 export const ProductService = {
 
     createProduct: async (data: any) => {
@@ -55,11 +70,18 @@ export const ProductService = {
         }
 
         let imgUrl = "";
+        let pdfUrl = "";
         if (parsed.data.imgFile) {
             const arrayBuffer = await parsed.data.imgFile.arrayBuffer();
             const imgBuffer = Buffer.from(arrayBuffer);
             const imgName = crypto.randomUUID() + path.extname(parsed.data.imgFile.name);
             imgUrl = await uploadImageToStorage(imgBuffer, imgName);
+        }
+        if(parsed.data.pdfFile) {
+            const arrayBuffer = await parsed.data.pdfFile.arrayBuffer();
+            const pdfBuffer = Buffer.from(arrayBuffer);
+            const pdfName = crypto.randomUUID() + path.extname(parsed.data.pdfFile.name);
+            pdfUrl = await uploadPdfToStorage(pdfBuffer, pdfName);
         }
 
         return prisma.product.create({
@@ -71,6 +93,7 @@ export const ProductService = {
                 stock: parsed.data.stock,
                 status: parsed.data.status,
                 imgUrl,
+                pdfUrl,
             }
         });
     },
@@ -100,11 +123,19 @@ export const ProductService = {
         }
 
         let imgUrl = "";
+        let pdfUrl = "";
         if (parsed.data.imgFile) {
             const arrayBuffer = await parsed.data.imgFile.arrayBuffer();
             const imgBuffer = Buffer.from(arrayBuffer);
             const imgName = crypto.randomUUID() + path.extname(parsed.data.imgFile.name);
             imgUrl = await uploadImageToStorage(imgBuffer, imgName);
+        }
+
+        if(parsed.data.pdfFile) {
+            const arrayBuffer = await parsed.data.pdfFile.arrayBuffer();
+            const pdfBuffer = Buffer.from(arrayBuffer);
+            const pdfName = crypto.randomUUID() + path.extname(parsed.data.pdfFile.name);
+            pdfUrl = await uploadPdfToStorage(pdfBuffer, pdfName);
         }
 
         return prisma.product.update({
@@ -117,6 +148,7 @@ export const ProductService = {
                 stock: parsed.data.stock,
                 status: parsed.data.status,
                 imgUrl,
+                pdfUrl,
             }
         });
     },
