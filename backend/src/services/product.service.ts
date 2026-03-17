@@ -1,4 +1,9 @@
+import { Context } from "hono";
 import { prisma } from "../db/prisma";
+import fs from "fs";
+import { writeFile, mkdir } from "node:fs/promises";
+import crypto from "crypto";
+import path from "path";
 import z from "zod";
 
 const statusEnum = z.enum(["draft", "active", "blocked"]);
@@ -6,18 +11,36 @@ const statusEnum = z.enum(["draft", "active", "blocked"]);
 const baseProductSchema = {
     name: z.string().min(1, "name is required"),
     description: z.string().optional(),
-    price: z.number().positive("price must be positive"),
+    price: z.coerce.number().positive("price must be positive"),
     sku: z.string().min(1, "sku is required"),
-    stock: z.number().int().nonnegative("stock must be 0 or more"),
+    stock: z.coerce.number().int().nonnegative("stock must be 0 or more"),
     status: statusEnum,
-    imgUrl: z.string().url("imgUrl must be a valid url")
+    imgFile: z.instanceof(File).optional(),
 };
 
 const createProductSchema = z.object(baseProductSchema);
 const updateProductSchema = z.object(baseProductSchema);
 
+
+const uploadImageToStorage = async (imageBuffer: Buffer, imageName: string) => {
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadDir, { recursive: true }, (err) => {
+        if (err) throw err;
+    });
+
+    const fullPath = path.join(uploadDir, imageName);
+    await fs.writeFile(fullPath, imageBuffer, (err2) => {
+        if (err2) throw err2;
+    });
+
+    return `/uploads/${imageName}`;
+
+};
+
 export const ProductService = {
-    createProduct: async (data: unknown) => {
+
+    createProduct: async (data: any) => {
+        let formData = new FormData();
         const parsed = createProductSchema.safeParse(data);
         if (!parsed.success) {
             throw { type: "validation", errors: parsed.error.flatten() };
@@ -31,22 +54,38 @@ export const ProductService = {
             throw { type: "duplicate", message: "sku already exists" };
         }
 
+        let imgUrl = "";
+        if (parsed.data.imgFile) {
+            const arrayBuffer = await parsed.data.imgFile.arrayBuffer();
+            const imgBuffer = Buffer.from(arrayBuffer);
+            const imgName = crypto.randomUUID() + path.extname(parsed.data.imgFile.name);
+            imgUrl = await uploadImageToStorage(imgBuffer, imgName);
+        }
+
         return prisma.product.create({
-            data: parsed.data,
+            data: {
+                name: parsed.data.name,
+                description: parsed.data.description,
+                price: parsed.data.price,
+                sku: parsed.data.sku,
+                stock: parsed.data.stock,
+                status: parsed.data.status,
+                imgUrl,
+            }
         });
     },
 
     getProducts: async () => {
         return prisma.product.findMany();
     },
-    
+
 
     getProductById: async (id: number) => {
         return prisma.product.findUnique({ where: { id } });
     },
 
 
-    updateProduct: async (id: number, data: unknown) => {
+    updateProduct: async (id: number, data: any) => {
         const parsed = updateProductSchema.safeParse(data);
         if (!parsed.success) {
             throw { type: "validation", errors: parsed.error.flatten() };
@@ -60,11 +99,26 @@ export const ProductService = {
             throw { type: "duplicate", message: "sku is already exists" };
         }
 
-        return prisma.product.update({
-            where: { id },
-            data: parsed.data,
-        });
+        let imgUrl = "";
+        if (parsed.data.imgFile) {
+            const arrayBuffer = await parsed.data.imgFile.arrayBuffer();
+            const imgBuffer = Buffer.from(arrayBuffer);
+            const imgName = crypto.randomUUID() + path.extname(parsed.data.imgFile.name);
+            imgUrl = await uploadImageToStorage(imgBuffer, imgName);
+        }
 
+        return prisma.product.update({
+            where: {id},
+            data: {
+                name: parsed.data.name,
+                description: parsed.data.description,
+                price: parsed.data.price,
+                sku: parsed.data.sku,
+                stock: parsed.data.stock,
+                status: parsed.data.status,
+                imgUrl,
+            }
+        });
     },
 
     deleteProduct: async (id: number) => {

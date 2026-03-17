@@ -1,5 +1,7 @@
-import { Context } from "hono";
+import { Context, Hono } from "hono";
 import { ProductService } from "../services/product.service";
+import { object } from "zod";
+
 
 const parseId = (c: Context) => {
     const id = Number(c.req.param("id"));
@@ -13,8 +15,8 @@ const parseId = (c: Context) => {
 export const ProductController = {
     createProduct: async (c: Context) => {
         try {
-            const body = await c.req.json();
-            const product = await ProductService.createProduct(body);
+            const data = await c.req.parseBody();
+            const product = await ProductService.createProduct(data);
             return c.json(product, 201)
         } catch (err: any) {
             if (err.type === "validation") {
@@ -70,9 +72,9 @@ export const ProductController = {
     updateProduct: async (c: Context) => {
         try {
             const id = parseId(c);
-            const body = await c.req.json();
+            const data = await c.req.parseBody()
 
-            const updated = await ProductService.updateProduct(id, body);
+            const updated = await ProductService.updateProduct(id, data);
             return c.json(updated);
         } catch (err: any) {
             if (err.type === "validation") {
